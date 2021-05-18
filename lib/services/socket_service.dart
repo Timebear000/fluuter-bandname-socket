@@ -9,38 +9,35 @@ enum ServerStatus {
 
 class SocketService with ChangeNotifier {
   ServerStatus _serverStatus = ServerStatus.Connecting;
+  IO.Socket _socket;
 
-  get serverStatus => this._serverStatus;
+  ServerStatus get serverStatus => this._serverStatus;
+  IO.Socket get socket => this._socket;
+
+  Function get emit => this._socket.emit;
 
   SocketService() {
     this._initConfig();
   }
 
   void _initConfig() {
-    IO.Socket socket = IO.io(
-        'http://192.168.0.213:3000',
+    this._socket = IO.io(
+        'http://192.168.1.10:3000',
         IO.OptionBuilder()
             .setTransports(['websocket'])
             .enableAutoConnect()
             .build());
 
-    socket.onConnect((_) {
+    this._socket.onConnect((_) {
       print('connect');
       this._serverStatus = ServerStatus.Online;
       notifyListeners();
     });
 
-    socket.onDisconnect((_) {
+    this._socket.onDisconnect((_) {
       print('disconnect');
       this._serverStatus = ServerStatus.Offline;
       notifyListeners();
-    });
-
-    socket.on('new-message', (payload) {
-      print('new-message');
-      print('nombre:' + payload['nombre']);
-      print('mensje:' + payload['mensaje']);
-      print(payload.containsKey('mensaje2') ? payload['mensaje2'] : 'no hay');
     });
   }
 }
